@@ -16,8 +16,8 @@ pipeline {
                 sh 'python -m unittest'
           }
         }
-          stage('Deploy') {
-          steps{
+        stage('Deploy') {
+          steps {
             script {
               sh '''
               docker rm -f jenkins
@@ -27,25 +27,22 @@ pipeline {
             }
           }
         }
-          stage('User Acceptance') {
-            steps{
-                input {
-              message "Proceed to push to main"
-              ok "Yes"
-            }    
-            }
+        stage('User Acceptance') {
+          steps {
+            input message: "Proceed to push to main", ok: "Yes"
           }
-          stage('Push & Merge'){
-            parallel {
-                stage('Push Image') {
-                  environment {
-                      DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
-                  }
-                  steps {
+        }
+        stage('Push & Merge') {
+          parallel {
+            stage('Push Image') {
+              environment {
+                DOCKERHUB_CREDENTIALS = credentials('docker_jenkins')
+              }
+              steps {
                 sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-                      sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
-                  }
-                }
+                sh 'docker push $DOCKER_ID/$DOCKER_IMAGE:$DOCKER_TAG'
+              }
+            }
             stage('Merge') {
               steps {
                 echo 'Merging done'
